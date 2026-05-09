@@ -1,0 +1,43 @@
+# 环境变量
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志和数据
+*.log
+data/*.db
+data/*.json
+data/performance/*
+
+# 密钥和配置
+config_local.yaml
+*.key
+*.pem
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
