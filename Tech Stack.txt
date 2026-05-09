@@ -1,0 +1,11 @@
+层级				技术					说明
+语言				Python 3.10+			主语言
+交易所API		CCXT				统一接口，支持异步
+数据库			DolphinDB			时序数据库，流批一体
+性能加速			Numba / Cython		价差计算加速
+配置管理			PyYAML + Pydantic	配置加载与校验
+日志				Loguru				比logging更友好
+异步				asyncio + aiohttp		并发价格获取
+监控				Web3.py				Mempool监控
+通知				python-telegram-bot	Telegram推送
+测试				Pytest				单元测试
