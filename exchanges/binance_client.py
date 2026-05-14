@@ -1,32 +1,35 @@
 import ccxt
 from exchange_base import ExchangeBase
+import asyncio
 #接入币安
 class BinanceClient(ExchangeBase):
     '''testnet=true:使用测试
          testnet=false:使用实盘'''
-    def __init__(self,testnet:bool=True) -> None:
+    def __init__(self,api_key,secret_key,enableRateLimit:bool=True,testnet:bool=True) -> None:
      #需要币安自动限频，避免被封
-        self.exchange = ccxt.binance({'enableRateLimit': True})
+        exchange_config={
+            'apiKey':api_key,
+            'secret':secret_key,
+            'enableRateLimit':enableRateLimit,
+        }
+        self.exchange = ccxt.binance(exchange_config)
         if testnet:
          self.exchange.set_sandbox_mode(True)
          print("币安：正在使用测试模式")
         else:
          print("币安：正在使用实盘模式")
-    def fetch_ticker(self,symbol: str):
-        '''
-        获取当前价格（返回最新价）
-        参数：
-        symbol：交易对
-        返回：
-        float32:当前价格
-        '''
-        try:
-            tiker=self.exchange.fetch_ticker(symbol)
-            return tiker['last'
-            ]
-        except Exception as e:
-            print(f"价格获取失败{e}")
-            return None
+    #增加了symbols的调用方式，可以直接传入列表来查询价格
+    def _fetch_single(self, symbol):
+        """单个获取的实际逻辑"""
+        ticker = self.exchange.fetch_ticker(symbol)
+        return ticker
+#注意，当函数内部使用了await的时候就需要用async来定义，然后会返回一个coroutine(协程）对象，需要用await方法来转化成返回值
+    async def fetch_ticker(self, symbol):
+        symbols = symbol if isinstance(symbol, list) else [symbol]
+        # 把同步函数放到线程池,这里用asyncio.to_thread方法就可以
+        tasks = [asyncio.to_thread(self._fetch_single, s) for s in symbols]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        return results
     def create_order(self,symbol,order_type:str,side:str,amount,price:float=None,params=None):
         """创建订单
         参数：交易对，订单类型（limit or market),交易方向，数量，限价单价格，拓展参数
@@ -96,19 +99,13 @@ class BinanceClient(ExchangeBase):
             return None
 
     def get_websocket_url(self):
-        # TODO: 币安将在2026年4月后更换WebSocket地址，届时需要更新为新架构的URL
-        #       新架构地址格式: wss://fstream.binance.com/{public,market,private}
-        #       目前暂时使用旧地址保证功能正常
-        """获取WebSocket URL"""
+        """
+        获取WebSocket URL
+
+        TODO: 2026年4月前需要迁移到新架构
+              - 旧地址: wss://stream.binance.com:9443/ws (当前使用)
+              - 新地址: wss://fstream.binance.com/{public,market,private}
+              参考: https://binance-docs.github.io/apidocs/websocket_api/en/
+        """
+        # FIXME: 临时使用旧地址，后续需改造
         return "wss://stream.binance.com:9443/ws"
-
-
-
-
-
-
-
-
-
-
-
